@@ -2,7 +2,6 @@
 local CONTAINER_VOLUME_MULTIPLIER = 1.0
 
 if false then
-        
     for key, id in pairs(core) do
         system.print("core: " .. key)
     end  
@@ -20,18 +19,51 @@ function newResource(name, massPerLiter)
     return resource
 end
 
-local resources = {
+-- global
+resources = {
     hematite = newResource("Hematite", 6.5),
     coal = newResource("Coal", 2.7),
+    bauxite = newResource("Bauxite", 2.7),
+    aluminium = newResource("Aluminium", 2.7),
+    iron = newResource("Iron", 2.7),
+    steel = newResource("Steel", 2.7),
+    silumin = newResource("Silumin", 2.7),
+    alfe_alloy = newResource("Al-fe Alloy", 2.7),
+    basic_screw = newResource("Basic Screw", 2.7),
+    basic_pipe = newResource("Basic Pipe", 2.7),
+    basic_hydraulics = newResource("Basic Hydraulics", 2.7),
 }
-library["resources"] = resources
+resourceKeyAliases = {}
+
+function makeResourceKey(name)
+    return name:lower():gsub(" ", "_"):gsub("-", "")
+end
+
+function findResource(name)
+    local knownResourceKey = resourceKeyAliases[makeResourceKey(name)]
+    if knownResourceKey ~= nil then
+        return resources[knownResourceKey]
+    end
+
+    local findResourceKey = makeResourceKey(name)
+
+    for resourceKey, resource in pairs(resources) do
+        if startsWith(resourceKey, findResourceKey) then
+            resourceKeyAliases[findResourceKey] = resourceKey
+
+            return resource
+        end
+    end
+
+    return nil
+end
 
 function newContainer(id, name)
     system.print("newContainer: " .. name)
     
     -- local containerType = determineContainerType(container)
 
-    local resource = resources[name:lower()]
+    local resource = resources[makeResourceKey(name)]
     if resource ~= nil then
         system.print("container with resource: " .. resource.name)
     end
@@ -52,13 +84,15 @@ function newContainerType(name, mass, volume)
     return containerType
 end
 
-local containerTypes = {
+-- global
+containerTypes = {
     XS = newContainerType("XS", 229.09, 1000),
     S = newContainerType("S", 1281.31, 8000),
     M = newContainerType("M", 7421.35, 64000),
     L = newContainerType("L", 14842.7, 128000),
 }
-local containerTypesDesc = {}
+-- global
+containerTypesDesc = {}
 for k, v in pairs(containerTypes) do
     containerTypesDesc[#containerTypesDesc + 1] = v
 end
@@ -117,9 +151,11 @@ end
 
 local containers = initContainer()
 
-library.getContainers = function() return containers end
+-- global
+getContainers = function() return containers end
 
-library.getContainersByResource = function() 
+-- global
+getContainersByResource = function()
     local containersByResource = {}
     for k, container in ipairs(containers) do
         if container.resource ~= nil then
@@ -128,7 +164,3 @@ library.getContainersByResource = function()
     end
     return containersByResource
 end
-
-library["init"] = function()
-end
-
