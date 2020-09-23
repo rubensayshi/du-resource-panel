@@ -1,6 +1,4 @@
 -- !DU: start()
-library.init()
-
 system.print("listing containers ... " .. #getContainers())
 
 for _, container in ipairs(getContainers()) do
@@ -13,6 +11,8 @@ end
 
 drawResourceDisplay()
 
+unit.setTimer("redraw", 10)
+unit.setTimer("refresh", 60)
+
 system.print("start done")
 
-unit.exit()

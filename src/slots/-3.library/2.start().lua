@@ -1,43 +1,72 @@
 -- !DU: start()
 
+local DISPLAY_CONTAINERS = true
+
 local tier1 = {
-	ores = {"bauxite", "coal", "hematite", ""},
-	refined = {"aluminium", "carbon", "iron", ""},
+	ores = {"bauxite", "coal", "hematite", "quartz"},
+	refined = {"aluminium", "carbon", "iron", "silicon"},
 	alloys = {"steel", "silumin", "al-fe alloy"},
 	metalworks = {"basic screw", "basic pipe", "basic hydraulics"},
 }
+local cats = {"ores", "refined", "alloys", "metalworks"}
 
+-- set later, for readability
+local DRAW_RULER
 local DRAW_HTML_START
 local DRAW_HTML_END
 
 function drawResourceDisplay()
-	local containers = getContainersByResource()
+	local containersByResource = getContainersByResource()
 
 	local resourcesInfo = {}
-	for t, items in pairs(tier1) do
-		resourcesInfo[t] = {}
+	for k, cat in ipairs(cats) do
+		items = tier1[cat]
+		resourcesInfo[cat] = {}
 
 		for k, item in pairs(items) do
-			local container = containers[item]
-			if container ~= nil then
+			local containers = containersByResource[item]
+			if containers ~= nil then
 		        local status = "OK"
 		        local statusStyle = "color: green;" 
-		        local mass = core.getElementMassById(container.id)
-		        local resource = container.resource
-		        local volume = mass / resource.massPerLiter
-		        if volume <= 2000 then
+		        local resource = containers[1].resource
+
+		        local totalVolume = 0
+		        local totalContainers = ""
+
+		        for i, container in ipairs(containers) do
+				    local containerType = container.containerType
+
+			        local mass = core.getElementMassById(container.id)
+			        mass = mass - containerType.mass
+
+			        local volume = math.floor(mass / resource.massPerLiter)
+
+			        totalVolume = totalVolume + volume
+			        totalContainers = totalContainers .. ", " .. containerType.name
+			    end
+
+			    if totalVolume > 0 then
+			    	totalContainers = totalContainers:sub(3)
+			    end
+
+		        if totalVolume <= 2000 then
 		        	status = "LOW"
 		        	statusStyle = "color: red;"
 		        end
 
-				resourcesInfo[t][item] = {
-					name = item,
-					volume = volume,
+		        local displayName = item
+		        if DISPLAY_CONTAINERS then
+		        	displayName = item .. "[" .. totalContainers .. "]"
+		        end
+
+				resourcesInfo[cat][item] = {
+					name = displayName,
+					volume = totalVolume,
 					status = status,
 					statusStyle = statusStyle,
 				}
 			else
-				resourcesInfo[t][item] = {
+				resourcesInfo[cat][item] = {
 					name = item,
 					volume = 0,
 					status = "NaN",
@@ -50,21 +79,25 @@ function drawResourceDisplay()
     local body = ""
 
 
-	for t, items in pairs(tier1) do
+	for k, cat in ipairs(cats) do
+		items = tier1[cat]
 		for k, item in pairs(items) do
-			local resourceInfo = resourcesInfo[t][item]
+			local resourceInfo = resourcesInfo[cat][item]
 
 	        body = body .. [[
 	     <tr>
-			<td>]] .. resourceInfo.name .. [[</td>
+			<td colspan=2>]] .. resourceInfo.name .. [[</td>
 			<td style="]] .. resourceInfo.statusStyle .. [[">]] .. resourceInfo.volume .. [[L</td>
 		</tr>]]
 		end
+
+		body = body .. DRAW_RULER
 	end
 
     screen1.setHTML(DRAW_HTML_START .. body .. DRAW_HTML_END)
 end
 
+DRAW_RULER = [[<tr><td colspan=3><hr /></td></tr>]]
 
 DRAW_HTML_START = [[
 <div class="bootstrap">
