@@ -4,38 +4,13 @@ local CONTAINER_VOLUME_MULTIPLIER = 1.0
 if false then
     for key, id in pairs(core) do
         system.print("core: " .. key)
-    end  
-    
+    end
+
     for key, id in pairs(unit) do
         system.print("unit: " .. key)
-    end  
+    end
 end
 
-function newResource(name, massPerLiter)
-    local resource = {}
-    resource.name = name
-    resource.massPerLiter = massPerLiter
-    
-    return resource
-end
-
--- global
-resources = {
-    hematite = newResource("Hematite", 5.04),
-    coal = newResource("Coal", 2.7),
-    bauxite = newResource("Bauxite", 2.7),
-    quartz = newResource("Quartz", 2.65),
-    iron = newResource("Iron", 7.85),
-    carbon = newResource("Carbon", 2.7),
-    aluminium = newResource("Aluminium", 2.7),
-    silicon = newResource("Silicon", 2.7),
-    steel = newResource("Steel", 8.05),
-    silumin = newResource("Silumin", 2.7),
-    alfe_alloy = newResource("Al-fe Alloy", 2.7),
-    basic_screw = newResource("Basic Screw", 8.05),
-    basic_pipe = newResource("Basic Pipe", 2.7),
-    basic_hydraulics = newResource("Basic Hydraulics", 2.7),
-}
 resourceKeyCache = {}
 
 function makeResourceKey(name)
@@ -77,7 +52,7 @@ function newContainer(id, name)
         local hp = core.getElementMaxHitPointsById(id)
         containerType = guessContainerTypeByHp(hp)
     end
-    
+
     return {
         id = id,
         name = name,
@@ -112,7 +87,7 @@ end
 
 function newContainerType(name, mass, volume, hp)
     local containerType = {
-    	name= name,
+        name= name,
         mass = mass,
         volume = volume * CONTAINER_VOLUME_MULTIPLIER,
         hp = hp,
@@ -147,19 +122,19 @@ end
 
 function findAllContainers()
     system.print("findAllContainers")
-    
+
     local containers = {}
 
     for k, id in pairs(core.getElementIdList()) do
         if core.getElementTypeById(id) == "container" then
             local container = newContainer(id, core.getElementNameById(id))
-            
+
             if container.resource ~= nil then
-            	containers[#containers + 1] = container
+                containers[#containers + 1] = container
             end
         end
     end
-    
+
     return containers
 end
 
