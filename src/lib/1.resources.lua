@@ -10,6 +10,47 @@ function newResource(name, itemType, tier, mass, volume)
     }
 end
 
+
+function makeResourceKey(name)
+    return name:lower():gsub(" ", "_"):gsub("-", "")
+end
+
+local resources = {}
+local resourceKeyCache = {}
+local resourcesSearchTree = {}
+function findResource(name)
+    local knownResourceKey = resourceKeyCache[makeResourceKey(name)]
+    if knownResourceKey ~= nil then
+        return resources[knownResourceKey]
+    end
+
+    local findResourceKey = makeResourceKey(name)
+
+    -- return resources[findResourceKey]
+
+    local tryKeys = {
+        findResourceKey,
+        trimSuffix(findResourceKey, "s"),
+        trimPrefix(findResourceKey, "pure_")
+    }
+
+    for k, tryKey in ipairs(tryKeys) do
+        for resourceKey, resource in pairs(resources) do
+            if startsWith(resourceKey, tryKey) or startsWith(tryKey, resourceKey) then
+                resourceKeyCache[findResourceKey] = resourceKey
+
+                return resource
+            end
+        end
+    end
+
+    return nil
+end
+
+function buildResourcesSearchTree() 
+resourcesSearchTree = {}
+end
+
 -- global
 resources = {
     bauxite = newResource("Bauxite", "Ore", 1, 1.28, 1),

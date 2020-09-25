@@ -1,18 +1,11 @@
 -- !DU: start()
-system.print("listing containers ... " .. #getContainers())
 
-for _, container in ipairs(getContainers()) do
-	local resource = ""
-	if container.resource ~= nil then
-		resource = container.resource.name
-	end
-    system.print("container:" .. container.name .. ": " .. resource .. ": " .. core.getElementMassById(container.id))
-end
+local numOfContainers = queueRefreshContainers()
 
-drawResourceDisplay()
+local jobsForFullRefresh = numOfContainers / REFRESH_PAYLOAD_SIZE
+local refreshTickRate = math.max(math.ceil(60 / jobsForFullRefresh), 1)
 
+system.print("jobsForFullRefresh: " .. jobsForFullRefresh .. " refreshTickRate: " .. refreshTickRate)
+
+unit.setTimer("refresh", refreshTickRate)
 unit.setTimer("redraw", 10)
-unit.setTimer("refresh", 60)
-
-system.print("start done")
-
