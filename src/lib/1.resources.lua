@@ -10,14 +10,12 @@ function newResource(name, itemType, tier, mass, volume)
     }
 end
 
-
 function makeResourceKey(name)
     return name:lower():gsub(" ", "_"):gsub("-", "")
 end
 
 local resources = {}
 local resourceKeyCache = {}
-local resourcesSearchTree = {}
 function findResource(name)
     local knownResourceKey = resourceKeyCache[makeResourceKey(name)]
     if knownResourceKey ~= nil then
@@ -26,8 +24,6 @@ function findResource(name)
 
     local findResourceKey = makeResourceKey(name)
 
-    -- return resources[findResourceKey]
-
     local tryKeys = {
         findResourceKey,
         trimSuffix(findResourceKey, "s"),
@@ -35,20 +31,14 @@ function findResource(name)
     }
 
     for k, tryKey in ipairs(tryKeys) do
-        for resourceKey, resource in pairs(resources) do
-            if startsWith(resourceKey, tryKey) or startsWith(tryKey, resourceKey) then
-                resourceKeyCache[findResourceKey] = resourceKey
+        if resources[tryKey] ~= nil then
+            resourceKeyCache[findResourceKey] = tryKey
 
-                return resource
-            end
+            return resources[tryKey]
         end
     end
 
     return nil
-end
-
-function buildResourcesSearchTree() 
-resourcesSearchTree = {}
 end
 
 -- global
