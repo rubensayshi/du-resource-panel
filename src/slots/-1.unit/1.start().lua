@@ -1,11 +1,9 @@
 -- !DU: start()
 
-local numOfContainers = queueRefreshContainers()
+queueRefreshContainers()
 
-local jobsForFullRefresh = numOfContainers / REFRESH_PAYLOAD_SIZE
-local refreshTickRate = math.max(math.ceil(60 / jobsForFullRefresh), 1)
+unit.setTimer("refresh", 1)
+unit.setTimer("redraw", 3)
 
-system.print("jobsForFullRefresh: " .. jobsForFullRefresh .. " refreshTickRate: " .. refreshTickRate)
-
-unit.setTimer("refresh", refreshTickRate)
-unit.setTimer("redraw", 10)
+-- draw instantly, to set everything to 0
+drawResourceDisplay()

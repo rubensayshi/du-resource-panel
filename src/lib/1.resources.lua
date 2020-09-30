@@ -1,33 +1,36 @@
 
-function newResource(name, itemType, tier, mass, volume)
+function newResource(name, category, tier, mass, volume)
     return {
         name = name,
-        type = itemType,
+        key = makeResourceKey(name),
+        category = category,
         tier = tier,
         mass = mass,
         volume = volume,
-        massPerLiter = round(mass / volume, 2),
+        massPerLiter = mass / volume,
     }
 end
 
 function makeResourceKey(name)
-    return name:lower():gsub(" ", "_"):gsub("-", "")
+    return trimPrefix(
+        trimSuffix(
+            name:lower():gsub(" ", "_"):gsub("-", ""), 
+            "_pure"), 
+        "pure_")
 end
 
 local resources = {}
 local resourceKeyCache = {}
 function findResource(name)
-    local knownResourceKey = resourceKeyCache[makeResourceKey(name)]
+    local findResourceKey = makeResourceKey(name)
+    local knownResourceKey = resourceKeyCache[findResourceKey]
     if knownResourceKey ~= nil then
         return resources[knownResourceKey]
     end
 
-    local findResourceKey = makeResourceKey(name)
-
     local tryKeys = {
         findResourceKey,
-        trimSuffix(findResourceKey, "s"),
-        trimPrefix(findResourceKey, "pure_")
+        trimSuffix(findResourceKey, "s")
     }
 
     for k, tryKey in ipairs(tryKeys) do
@@ -187,3 +190,21 @@ resources = {
     uncommon_solid_warhead = newResource("Uncommon Solid Warhead", "Complex Part", 2, 45.36, 5),
     advanced_solid_warhead = newResource("Advanced Solid Warhead", "Complex Part", 3, 46.43, 5),
 }
+for key, resource in pairs(resources) do
+    resources[key] = nil
+    resources[makeResourceKey(key)] = resource
+end
+
+categories = {"ore", "pure", "product", "intermediary_part", "complex_part"}
+resourcesForDisplay = {}
+
+for tier = 1, 5 do
+    resourcesForDisplay[tier] = {}
+    for k, category in pairs(categories) do
+        resourcesForDisplay[tier][makeResourceKey(category)] = {}
+    end
+end
+
+for k, resource in pairs(resources) do
+    table.insert(resourcesForDisplay[resource.tier][makeResourceKey(resource.category)], resource)
+end

@@ -1,77 +1,76 @@
 -- !DU: start()
 
 local DISPLAY_CONTAINERS = true
-
-local tier1 = {
-    ores = {"bauxite", "coal", "hematite", "quartz"},
-    refined = {"pure_aluminium", "pure_carbon", "pure_iron", "pure_silicon"},
-    alloys = {"steel", "silumin", "alfe_alloy"},
-    metalworks = {"basic_screw", "basic_pipe", "basic_hydraulics"},
-}
-local cats = {"ores", "refined", "alloys", "metalworks"}
+local DISPLAY_TIERS = {1, 2}
 
 -- set later, for readability
 local DRAW_RULER
 local DRAW_HTML_START
 local DRAW_HTML_END
+local DRAW_HTML_TABLE_START1
+local DRAW_HTML_TABLE_START2
+local DRAW_HTML_TABLE_END
 
 function drawResourceDisplay()
     local containersByResource = getContainersByResource()
 
-    local resourcesInfo = {}
-    for k, cat in ipairs(cats) do
-        items = tier1[cat]
-        resourcesInfo[cat] = {}
+    local data = {}
+    for k, tier in ipairs(DISPLAY_TIERS) do
+        data[tier] = {}
 
-        for k, item in pairs(items) do
-            local containers = containersByResource[item]
-            if containers ~= nil then
-                local status = "OK"
-                local statusStyle = "color: green;"
-                local resource = containers[1].resource
+        for cat, resourcesInCat in pairs(resourcesForDisplay[tier]) do
+            data[tier][cat] = {}
 
-                local totalVolume = 0
-                local totalContainers = ""
+            for k, resource in pairs(resourcesInCat) do
+                local containers = containersByResource[resource.key]
+                if containers ~= nil then
+                    local status = "OK"
+                    local statusStyle = "color: green;"
 
-                for i, container in ipairs(containers) do
-                    local containerType = container.containerType
+                    local totalVolume = 0
+                    local totalContainers = ""
 
-                    local mass = core.getElementMassById(container.id)
-                    mass = mass - containerType.mass
+                    for i, container in pairs(containers) do
+                        local containerType = container.containerType
 
-                    local volume = math.floor(mass / resource.massPerLiter)
+                        local mass = core.getElementMassById(container.id)
+                        mass = mass - containerType.mass
 
-                    totalVolume = totalVolume + volume
-                    totalContainers = totalContainers .. ", " .. containerType.name
+                        local volume = math.floor(mass / resource.massPerLiter)
+
+                        totalVolume = totalVolume + volume
+                        totalContainers = totalContainers .. ", " .. containerType.name
+                    end
+
+                    -- strip trailing ", "
+                    if totalVolume > 0 then
+                        totalContainers = totalContainers:sub(3)
+                    end
+
+                    if totalVolume <= 2000 then
+                        status = "LOW"
+                        statusStyle = "color: red;"
+                    end
+
+                    local displayName = item
+                    if DISPLAY_CONTAINERS then
+                        displayName = resource.name .. "[" .. totalContainers .. "]"
+                    end
+
+                    data[tier][cat][resource.key] = {
+                        name = displayName,
+                        volume = totalVolume,
+                        status = status,
+                        statusStyle = statusStyle,
+                    }
+                else
+                    data[tier][cat][resource.key] = {
+                        name = resource.name,
+                        volume = 0,
+                        status = "NaN",
+                        statusStyle = "color: orange;",
+                    }
                 end
-
-                if totalVolume > 0 then
-                    totalContainers = totalContainers:sub(3)
-                end
-
-                if totalVolume <= 2000 then
-                    status = "LOW"
-                    statusStyle = "color: red;"
-                end
-
-                local displayName = item
-                if DISPLAY_CONTAINERS then
-                    displayName = item .. "[" .. totalContainers .. "]"
-                end
-
-                resourcesInfo[cat][item] = {
-                    name = displayName,
-                    volume = totalVolume,
-                    status = status,
-                    statusStyle = statusStyle,
-                }
-            else
-                resourcesInfo[cat][item] = {
-                    name = item,
-                    volume = 0,
-                    status = "NaN",
-                    statusStyle = "color: orange;",
-                }
             end
         end
     end
@@ -79,49 +78,59 @@ function drawResourceDisplay()
     local body = ""
 
 
-    for k, cat in ipairs(cats) do
-        items = tier1[cat]
-        for k, item in pairs(items) do
-            local resourceInfo = resourcesInfo[cat][item]
+    for k, tier in ipairs(DISPLAY_TIERS) do
+        body = body .. DRAW_HTML_TABLE_START1 .. "T" .. tier .. DRAW_HTML_TABLE_START2
 
-            body = body .. [[
-	     <tr>
-			<td colspan=2>]] .. resourceInfo.name .. [[</td>
-			<td style="]] .. resourceInfo.statusStyle .. [[">]] .. resourceInfo.volume .. [[L</td>
-		</tr>]]
+        for c, cat in ipairs(categories) do
+            local resourcesInCat = resourcesForDisplay[tier][cat]
+
+            for k, resource in pairs(resourcesInCat) do
+                local resourceInfo = data[tier][cat][resource.key]
+
+                body = body .. [[
+    	     <tr>
+    			<td style="overflow: hidden;  text-overflow: ellipsis; white-space: nowrap;">]] .. resourceInfo.name .. [[</td>
+    			<td style="]] .. resourceInfo.statusStyle .. [[">]] .. resourceInfo.volume .. [[L</td>
+    		</tr>]]
+            end
+
+            body = body .. DRAW_RULER
         end
 
-        body = body .. DRAW_RULER
+        body = body .. DRAW_HTML_TABLE_END
     end
 
     screen1.setHTML(DRAW_HTML_START .. body .. DRAW_HTML_END)
 end
 
-DRAW_RULER = [[<tr><td colspan=3><hr /></td></tr>]]
+DRAW_HTML_START = [[<div class="bootstrap">]]
+DRAW_HTML_END = [[</div>]]
 
-DRAW_HTML_START = [[
-<div class="bootstrap">
-<h1 style="font-size: 5em;">T1 Ore & Pure Status</h1>
+DRAW_RULER = [[<tr><td colspan=2><hr /></td></tr>]]
+
+DRAW_HTML_TABLE_START1 = [[
+<div style="width: 50%; float: left;">
+<h1 style="font-size: 4em;">]]
+
+DRAW_HTML_TABLE_START2 = [[</h1>
 <table style="
 	margin-top: 5px;
 	margin-left: auto;
 	margin-right: auto;
-	width: 80%;
-	font-size: 2em;
+	font-size: 1.5em;
+    width: 100%;
 ">
 	<tr style="
-		width: 100%;
 		margin-bottom: 30px;
 		background-color: blue;
 		color: white;
 	">
-		<th>Resource</th>
-		<th></th>
-		<th>Levels</th>
+		<th width="80%">Resource</th>
+		<th width="20%">Levels</th>
      </tr>
 ]]
 
-DRAW_HTML_END = [[
+DRAW_HTML_TABLE_END = [[
 </table>
 </div>
 ]]
