@@ -6,7 +6,7 @@ if core ~= nil then
     _core = core
 end
 if _core == nil then
-    _core = findFirstElementOfType("Core")
+    _core = findFirstElementOfType("CoreUnitStatic")
 end
 if _core == nil then
     system.print("ERROR: There's no core linked! Some LUA errors will follow ...")

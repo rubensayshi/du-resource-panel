@@ -8,7 +8,7 @@ if drawScreen == nil and screen1 ~= nil then
     drawScreen = screen1
 end
 if drawScreen == nil then
-    drawScreen = findFirstElementOfType("Screen")
+    drawScreen = findFirstElementOfType("ScreenUnit")
 end
 if drawScreen == nil then
     system.print("ERROR: There's no screen linked! Some LUA errors will follow ...")
