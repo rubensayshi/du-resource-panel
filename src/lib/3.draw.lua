@@ -1,5 +1,19 @@
 -- !DU: start()
 
+local drawScreen = nil
+if screen ~= nil then
+    drawScreen = screen
+end
+if drawScreen == nil and screen1 ~= nil then
+    drawScreen = screen1
+end
+if drawScreen == nil then
+    drawScreen = findFirstElementOfType("Screen")
+end
+if drawScreen == nil then
+    system.print("ERROR: There's no screen linked! Some LUA errors will follow ...")
+end
+
 local DISPLAY_CONTAINERS = true
 local DISPLAY_TIERS = {1, 2}
 
@@ -29,6 +43,7 @@ function drawResourceDisplay()
 
                     local totalVolume = 0
                     local totalContainers = ""
+                    local totalAvailableVolume = 0
 
                     for i, container in pairs(containers) do
                         local containerType = container.containerType
@@ -39,6 +54,7 @@ function drawResourceDisplay()
                         local volume = math.floor(mass / resource.massPerLiter)
 
                         totalVolume = totalVolume + volume
+                        totalAvailableVolume = totalAvailableVolume + containerType.volume
                         totalContainers = totalContainers .. ", " .. containerType.name
                     end
 
@@ -60,6 +76,7 @@ function drawResourceDisplay()
                     data[tier][cat][resource.key] = {
                         name = displayName,
                         volume = totalVolume,
+                        availableVolume = totalAvailableVolume,
                         status = status,
                         statusStyle = statusStyle,
                     }
@@ -67,6 +84,7 @@ function drawResourceDisplay()
                     data[tier][cat][resource.key] = {
                         name = resource.name,
                         volume = 0,
+                        availableVolume = 0,
                         status = "NaN",
                         statusStyle = "color: orange;",
                     }
@@ -86,6 +104,7 @@ function drawResourceDisplay()
 
             for k, resource in pairs(resourcesInCat) do
                 local resourceInfo = data[tier][cat][resource.key]
+                --local percentage = math.ceil(resourceInfo.volume / resourceInfo.availableVolume)
 
                 body = body .. [[
     	     <tr>
@@ -100,7 +119,7 @@ function drawResourceDisplay()
         body = body .. DRAW_HTML_TABLE_END
     end
 
-    screen1.setHTML(DRAW_HTML_START .. body .. DRAW_HTML_END)
+    drawScreen.setHTML(DRAW_HTML_START .. body .. DRAW_HTML_END)
 end
 
 DRAW_HTML_START = [[<div class="bootstrap">]]

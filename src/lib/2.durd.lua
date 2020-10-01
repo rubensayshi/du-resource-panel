@@ -1,7 +1,20 @@
 -- !DU: start()
 
+-- ensure we have a core global
+local _core = nil
+if core ~= nil then
+    _core = core
+end
+if _core == nil then
+    _core = findFirstElementOfType("Core")
+end
+if _core == nil then
+    system.print("ERROR: There's no core linked! Some LUA errors will follow ...")
+end
+core = _core
+
 -- this could be set to some value affected by talents, but we're not using it atm ...
-local CONTAINER_VOLUME_MULTIPLIER = 1.0
+local CONTAINER_VOLUME_MULTIPLIER = 1.0 -- export
 
 function newContainerType(name, mass, volume, hp)
     local containerType = {
@@ -13,7 +26,7 @@ function newContainerType(name, mass, volume, hp)
     return containerType
 end
 
--- @TODO: are these really tbe base HP?
+-- @TODO: are these really the base HP?
 containerTypes = {
     XS = newContainerType("XS", 229.09, 1000, 124),
     S = newContainerType("S", 1281.31, 8000, 999),

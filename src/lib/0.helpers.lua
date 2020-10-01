@@ -30,3 +30,16 @@ function round(number, decimals)
     local power = 10 ^ decimals
     return math.floor((number/1000) * power) / power
 end
+
+function findFirstElementOfType(findType)
+    -- `value` is an element and `key` is the slot name
+    for key, value in pairs(unit) do
+        if type(value) == "table" and type(value.export) == "table" then
+            if value.getElementClass then
+                if value.getElementClass() == findType then
+                    return value
+                end
+            end
+        end
+    end
+end
