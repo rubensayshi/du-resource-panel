@@ -12,11 +12,17 @@ function newResource(name, category, tier, mass, volume)
 end
 
 function makeResourceKey(name)
-    return trimPrefix(
+    local key = trimPrefix(
         trimSuffix(
             name:lower():gsub(" ", "_"):gsub("-", ""), 
             "_pure"), 
         "pure_")
+
+    while string.match(key, "%d$") do
+        key = key:sub(1, #key - 1)
+    end
+
+    return trimSuffix(key, "_")
 end
 
 local resources = {}
