@@ -28,6 +28,7 @@ end
 
 -- @TODO: are these really the base HP?
 containerTypes = {
+    Hub = newContainerType("Hub", 55.80, 0, 50),
     XS = newContainerType("XS", 229.09, 1000, 124),
     S = newContainerType("S", 1281.31, 8000, 999),
     M = newContainerType("M", 7421.35, 64000, 7997),
@@ -73,6 +74,12 @@ function refreshContainerContents(ids)
             if containers[id] == nil then
                 -- new object, maybe a container?
                 if core.getElementTypeById(id) == "container" then
+                    local container = newContainer(id, core.getElementNameById(id))
+                    containers[id] = container
+
+                    -- add it to the containersByResource
+                    setContainerByResource(container)
+                elseif core.getElementTypeById(id) == "Container Hub" then
                     local container = newContainer(id, core.getElementNameById(id))
                     containers[id] = container
 
